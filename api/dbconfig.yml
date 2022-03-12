@@ -4,7 +4,5 @@ test:
   dir: migrations/development
 development:
   dialect: postgres
-  # datasource: ${POSTGRES_USER}:${POSTGRES_PASSWORD}@tcp(${POSTGRES_HOST}:${POSTGRES_PORT})/${POSTGRES_DATABASE}?parseTime=true
-  # datasource: ${POSTGRES_USER}:${POSTGRES_PASSWORD}@tcp(${POSTGRES_HOST}:${POSTGRES_PORT})/${POSTGRES_DATABASE}?parseTime=true
   datasource: host=db port=${POSTGRES_PORT} dbname=${POSTGRES_DATABASE} user=${POSTGRES_USER} password=${POSTGRES_PASSWORD} sslmode=disable
   dir: migrations/development
