@@ -1,0 +1,103 @@
+version: '3'
+# TODO API-DB間の疎通が通っていないため、NETWOKの再定義を行う
+# networks:
+#   db_net:
+#     driver: bridge
+#     ipam:
+#       driver: default
+#       config:
+#         - subnet: 192.168.0.0/24
+#           gateway: 192.168.0.1
+#   api_net:
+#     driver: bridge
+#     ipam:
+#       driver: default
+#       config:
+#         - subnet: 192.168.10.0/24
+#           gateway: 192.168.10.1
+volumes:
+  db-volume:
+services:
+  db:
+    build:
+      context: ./db
+      dockerfile: Dockerfile
+    container_name: postgres
+    # networks:
+    #   db_net:
+    #     ipv4_address: 192.168.0.2
+    volumes:
+      # Initialize DB Create
+      - ./db/initdb:/docker-entrypoint-initdb.d
+      # confの設定
+      - ./db/postgresql.conf:/var/lib/postgresql/data
+      # - ./db/schedule:/home/schedule
+      # - ./db/log:/var/lib/POSTGRESQL
+      # - db-volume:/var/lib/POSTGRESQL
+    environment:
+      LANG: "ja_JP.UTF-8"
+      LC_ALL: "ja_JP.UTF-8"
+      POSTGRES_DB: schedule_dev
+      POSTGRES_USER: dev_user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+  front:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    user: root
+    volumes:
+      - ./front:/usr/src/app
+    command: sh -c "cd schedule_app && npm run dev"
+    ports:
+      - "3000:3000"
+    tty: true
+    environment:
+      # API側のエンドポイント指定
+      BASE_URL: "http://192.168.10.1:8080"
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    # networks:
+    #   api_net:
+    #     ipv4_address: 192.168.10.2
+    # command: sh -c "go run ."
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./api:/go/src/api/
+      - ./api/pkg:/go/pkg
+      - ./api/bin:/go/bin
+    tty: true
+    environment:
+      TEST_MODE: "true"
+      POSTGRES_DATABASE: "schedule_dev"
+      POSTGRES_TEST_DATABASE: "schedule_test"
+      POSTGRES_USER: "dev_user"
+      POSTGRES_PASSWORD: "password"
+      POSTGRES_HOST: 192.168.0.1
+      POSTGRES_PORT: 5432
+    depends_on:
+      - db
+    # profiles:
+    #   - debug
+  nginx:
+    build:
+      context: ./nginx/
+      dockerfile: Dockerfile
+    container_name: nginx
+    user: root
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./nginx/:/etc/nginx/conf.d/
+      # - ../front/build:/var/www
+      - ./nginx/logs:/var/log/nginx
+    # command: sh -c "chown -R nginx:nginx /etc/nginx"
+    # tty: true
+    # stdin_open: true
+    depends_on:
+      - front
