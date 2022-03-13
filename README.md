@@ -172,7 +172,9 @@ $ go run main.go
 
 以下コマンドをコンテナーへ入った後にまとめて貼り付けてまとめて実行する
 ```sh
+go get golang.org/x/tools/cmd/godoc
 go get github.com/lib/pq
+go get gorm.io/driver/postgres 
 go get github.com/rubenv/sql-migrate/...
 go get github.com/gin-gonic/gin
 go get gorm.io/gorm
@@ -180,6 +182,8 @@ go get github.com/go-delve/delve/cmd/dlv@latest
 go get github.com/stretchr/testify
 go get github.com/DATA-DOG/go-sqlmock
 go get github.com/google/wire
+go get github.com/gin-contrib/sessions
+go get github.com/koron/go-dproxy
 go install github.com/x-motemen/gore/cmd/gore@latest
 ```
 
