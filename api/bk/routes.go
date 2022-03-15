@@ -1,4 +1,4 @@
-package main
+package api
 
 func initializeRoutes() {
 	// Root Page

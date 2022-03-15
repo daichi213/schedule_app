@@ -1,11 +1,8 @@
 package api
 
 import (
-	"os"
-	"fmt"
 	"log"
 	"gorm.io/gorm"
-	"gorm.io/driver/postgres"
 	_ "github.com/lib/pq"
 )
 
@@ -20,27 +17,41 @@ type AuthUser EmailLoginRequest
 
 var User AuthUser
 
-func getDB() (*gorm.DB, error) {
-	postgresqlInfo := fmt.Sprintf("host=db port=${POSTGRES_PORT} dbname=${POSTGRES_DATABASE} user=${POSTGRES_USER} password=${POSTGRES_PASSWORD} sslmode=disable",
-		os.Getenv("POSTGRES_PORT"), os.Getenv("POSTGRES_DATABASE"), os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_PASSWORD"))
-
-	db, err := gorm.Open(postgres.Open(postgresqlInfo), &gorm.Config{})
-
-	return db, err
-}
-
-func GetUserByEmail(email string) error {
-	db , err := getDB()
+func CreateUser(user *AuthUser) error {
+	db , err := GetDB()
+	tx := db.Begin()
 	if err != nil {
 		log.Fatalf("An Error occurred while connecting to database: %v", err)
 		panic(err)
 	} else {
-		tx, err := db.DB()
+		DB, err := db.DB()
 		if err != nil {
 			log.Fatalf("Could not find DB: %v", err)
 			panic(err)
 		}
-		defer tx.Close()
+		defer DB.Close()
+		if err := tx.Model(user).Create(user).Error; err != nil {
+			tx.Rollback()
+			log.Fatalf("Could not create: %s", err.Error())
+		} else {
+			tx.Commit()
+		}
+		return err
+	}
+}
+
+func GetUserByEmail(email string) error {
+	db , err := GetDB()
+	DB, err := db.DB()
+	if err != nil {
+		log.Fatalf("An Error occurred while connecting to database: %v", err)
+		panic(err)
+	} else {
+		if err != nil {
+			log.Fatalf("Could not find DB: %v", err)
+			panic(err)
+		}
+		defer DB.Close()
 		errFirst := db.Debug().Where("email= ?", email).First(&User).Error
 		return errFirst
 	}
