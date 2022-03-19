@@ -2,22 +2,18 @@ package api
 
 import (
 	"log"
-	"gorm.io/gorm"
 	_ "github.com/lib/pq"
 )
 
-type EmailLoginRequest struct {
-	gorm.Model
-	Name string `json:"name" bson:"name"`
-	Email string `json:"email" bson:"email"`
-	Password string `json:"password" bson:"password"`
+type Login struct {
+	UserName string `form:"username" json:"username" binding:"required"`
+	Email string `form:"email" json:"email" binding:"required"`
+	Password string `form:"password" json:"password" binding:"required"`
 }
 
-type AuthUser EmailLoginRequest
+var User Login
 
-var User AuthUser
-
-func CreateUser(user *AuthUser) error {
+func CreateUser(user *Login) error {
 	db , err := GetDB()
 	tx := db.Begin()
 	if err != nil {
@@ -37,22 +33,5 @@ func CreateUser(user *AuthUser) error {
 			tx.Commit()
 		}
 		return err
-	}
-}
-
-func GetUserByEmail(email string) error {
-	db , err := GetDB()
-	DB, err := db.DB()
-	if err != nil {
-		log.Fatalf("An Error occurred while connecting to database: %v", err)
-		panic(err)
-	} else {
-		if err != nil {
-			log.Fatalf("Could not find DB: %v", err)
-			panic(err)
-		}
-		defer DB.Close()
-		errFirst := db.Debug().Where("email= ?", email).First(&User).Error
-		return errFirst
 	}
 }

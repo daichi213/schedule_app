@@ -1,19 +1,37 @@
 package api
 
-// import (
-//     "github.com/gin-gonic/gin"
-// )
+import (
+	"log"
+    "github.com/gin-gonic/gin"
+)
 
-// func InitializeRoutes(router *gin.Engine) {
-// 	// Sign Up
-// 	router.POST("/signup", SignUp)
+func InitializeRoutes(router *gin.Engine) {
+	// Call the authMiddleware
+	authMiddleware, err := CallAuthMiddleware()
+	if err != nil {
+		log.Fatal("JWT Error:" + err.Error())
+	}
 
-// 	// Login
-// 	router.POST("/login", LoginHandler)
-// 	// 認証済のみアクセス可能なグループ
-// 	authUserGroup := router.Group("/auth")
-// 	authUserGroup.Use(LoginCheckMiddleware())
-// 	{
-// 		// authUserGroup.GET("/schedule",)
-// 	}
-// }
+	// Sign Up
+	router.POST("/signup", SignUp)
+
+	// Login
+	router.POST("/login", authMiddleware.LoginHandler)
+
+	// 404のRouting
+	router.NoRoute(authMiddleware.MiddlewareFunc(), NoRouting)
+
+	// 認証後のRouting
+	auth := router.Group("/auth")
+	auth.GET("/refresh_token", authMiddleware.RefreshHandler)
+	auth.Use(authMiddleware.MiddlewareFunc())
+	{
+		auth.GET("/hello", HelloHandler)
+		auth.GET("/schedule", ScheduleHandler)
+	}
+
+	// AuthMiddleWareの初期化
+	if errInit := authMiddleware.MiddlewareInit();errInit != nil {
+		log.Fatal("AuthMiddleware.MiddlewareInit failed: ", errInit.Error())
+	}
+}
