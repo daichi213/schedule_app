@@ -3,13 +3,26 @@ package api
 import (
 	"time"
     "github.com/gin-gonic/gin"
-	
+	"crypto/bcrypt"
+
 	jwt "github.com/appleboy/gin-jwt/v2"
 )
 
-var IdentityKey = "id"
+// パスワードのハッシュ化関数
+// TODO saltをenvファイルに生成しているので、それを読み込みpasswardに連結してハッシュ化する
+// TODO dockerのbuild時にsaltをenvファイルに出力するようにする
+// cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 36 | head -n 1 | sort | uniq > salt.env
+func PasswordToHash(password string) []byte {
+	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		log.Printf("Error generating password")
+	}
+	return hashed
+}
 
 // jwt middleware
+var IdentityKey = "id"
+
 func CallAuthMiddleware() (*jwt.GinJWTMiddleware, error) {
 	AuthMiddleware, err := jwt.New(&jwt.GinJWTMiddleware{
 		Realm:		"test zone",
