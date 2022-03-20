@@ -1,24 +1,32 @@
 package api
 
 import (
+	// "os"
 	"time"
+	"log"
     "github.com/gin-gonic/gin"
-	"crypto/bcrypt"
+	"golang.org/x/crypto/bcrypt"
+	// "github.com/joho/godotenv"
 
 	jwt "github.com/appleboy/gin-jwt/v2"
 )
 
-// パスワードのハッシュ化関数
-// TODO saltをenvファイルに生成しているので、それを読み込みpasswardに連結してハッシュ化する
-// TODO dockerのbuild時にsaltをenvファイルに出力するようにする
-// cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 36 | head -n 1 | sort | uniq > salt.env
-func PasswordToHash(password string) []byte {
-	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		log.Printf("Error generating password")
-	}
-	return hashed
-}
+// 廃止
+// func PasswordToHash(password string) ([]byte, error) {
+// 	err := godotenv.Load(CurrentDir + "/salt.env")
+// 	if err != nil {
+// 		log.Fatalf("An error occurred while loading salt")
+// 		return []byte(""), err
+// 	}
+// 	salt := os.Getenv("SALT")
+// 	passSalt := password + salt
+// 	hashed, err := bcrypt.GenerateFromPassword([...]byte(passSalt), bcrypt.DefaultCost)
+// 	if err != nil {
+// 		log.Fatalf("An error occurred while hashing password")
+// 		return []byte(""), err
+// 	}
+// 	return hashed, err
+// }
 
 // jwt middleware
 var IdentityKey = "id"
@@ -52,21 +60,41 @@ func CallAuthMiddleware() (*jwt.GinJWTMiddleware, error) {
 			if err := c.ShouldBind(&loginVals); err != nil {
 				return "", jwt.ErrMissingLoginValues
 			}
-			userID := loginVals.UserName
-			password := loginVals.Password
+			sentEmail := loginVals.Email
+			sentPassword, err := bcrypt.GenerateFromPassword([]byte(loginVals.Password), bcrypt.DefaultCost)
+			if err != nil {
+				log.Fatalf("An error occurred while password is hashing")
+				return "", jwt.ErrMissingLoginValues
+			}
 
-			if (userID == "admin" && password == "admin") || (userID == "test" && password == "test") {
+			// TODOHTTPヘッダからIPアドレスを記録できるようにする
+			if err := GetUserByEmail(sentEmail); err != nil {
+				log.Fatalf("No existing password is sent")
+				return "", jwt.ErrMissingLoginValues
+			}
+
+			if invalid := bcrypt.CompareHashAndPassword(sentPassword, User.Password); invalid != nil {
+				return nil, jwt.ErrFailedAuthentication
+			} else {
 				return &Login{
-					UserName: 	userID,
-					Email: 		"Bo-Yi",
-					Password:	"Wu",
+					UserName: 	User.UserName,
+					Email: 		User.Email,
+					Password:	loginVals.Password,
 				}, nil
 			}
-			return nil, jwt.ErrFailedAuthentication
+
+			// if (sentEmail == User.Email && sentPassword == User.Password) {
+			// 	return &Login{
+			// 		UserName: 	User.UserName,
+			// 		Email: 		User.Email,
+			// 		Password:	loginVals.Password,
+			// 	}, nil
+			// }
+			// return nil, jwt.ErrFailedAuthentication
 		},
 		// 認可(権限の確認)
 		Authorizator: func(data interface{}, c *gin.Context) bool {
-			if v, ok := data.(*Login); ok && v.UserName == "admin" {
+			if v, ok := data.(*Login); ok && v.AdminFlag == 1 {
 				return true
 			}
 			return false

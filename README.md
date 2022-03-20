@@ -189,17 +189,19 @@ go install github.com/x-motemen/gore/cmd/gore@latest
 
 3. 作成されたgo.mod, go.sumをイメージ内へ転写して `go mod download`を実行することでイメージにライブラリをインストールすることができる。
 
-### ライブラリを追加する場合
-
-1. 以下コマンドを順番に実行
+### 環境構築手順
 
 ```sh
-$ docker-compose up
-# 以下手順から別タブにて順次実行する
-$ docker-compose exec api bash
-$go get -u github.com/gin-gonic/gin
-# コンテナを停止後再ビルドする
-$ docker-compose build
+$ docker-compose exec api sh
+# Table作成
+$ sql-migrate up -env="development"
+# Tableが作成されているか確認する
+$ sql-migrate status -env="development"
+# saltを生成するためのシェル
+$ sh /go/src/api/generatingSalt.sh
+# saltが生成されてるか確認する
+$ cat /go/src/api/salt.env
+SALT="ivYD6S8xRZ0SfacCmhmcfROlBKz7VyjWmIUV"/go/src/api # 
 ```
 
 ## 備考
@@ -211,3 +213,12 @@ mysqlのイメージを使用時にcomposeファイルでenvironmentを設定し
 ```bash
 $ docker builder prune
 ```
+
+## 既知の脆弱性への対策
+
+### 認証系
+
+#### ブルートフォース攻撃
+
+#### レインボーテーブル攻撃
+

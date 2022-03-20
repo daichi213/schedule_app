@@ -9,6 +9,8 @@ import (
 
 func main() {
 	router := gin.Default()
+	// TODO FrontEndのIPまたはDNSを指定する
+	// router.SetTrustedProxies([]string{"192.168.1.2"})
 
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
