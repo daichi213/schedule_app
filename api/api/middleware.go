@@ -1,32 +1,13 @@
 package api
 
 import (
-	// "os"
 	"time"
 	"log"
     "github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
-	// "github.com/joho/godotenv"
 
 	jwt "github.com/appleboy/gin-jwt/v2"
 )
-
-// 廃止
-// func PasswordToHash(password string) ([]byte, error) {
-// 	err := godotenv.Load(CurrentDir + "/salt.env")
-// 	if err != nil {
-// 		log.Fatalf("An error occurred while loading salt")
-// 		return []byte(""), err
-// 	}
-// 	salt := os.Getenv("SALT")
-// 	passSalt := password + salt
-// 	hashed, err := bcrypt.GenerateFromPassword([...]byte(passSalt), bcrypt.DefaultCost)
-// 	if err != nil {
-// 		log.Fatalf("An error occurred while hashing password")
-// 		return []byte(""), err
-// 	}
-// 	return hashed, err
-// }
 
 // jwt middleware
 var IdentityKey = "id"
@@ -82,15 +63,6 @@ func CallAuthMiddleware() (*jwt.GinJWTMiddleware, error) {
 					Password:	loginVals.Password,
 				}, nil
 			}
-
-			// if (sentEmail == User.Email && sentPassword == User.Password) {
-			// 	return &Login{
-			// 		UserName: 	User.UserName,
-			// 		Email: 		User.Email,
-			// 		Password:	loginVals.Password,
-			// 	}, nil
-			// }
-			// return nil, jwt.ErrFailedAuthentication
 		},
 		// 認可(権限の確認)
 		Authorizator: func(data interface{}, c *gin.Context) bool {

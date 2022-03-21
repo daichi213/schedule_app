@@ -27,3 +27,11 @@ godocコマンドを使用することで、go.modに存在しているパッケ
 $ chmod +x /go/bin/godoc
 $ godoc -http ":8080"
 ```
+
+## レコードの挿入
+
+レコード自体VALUES句の後ろに指定するが、この時、レコードはダブルクォーテーションではなく、シングルクォーテーションで囲むようにする。ダブルクォーテーションは列名として認識されるよう。
+
+```sql
+INSERT INTO users (created_at, username, email, password, admin_flag) VALUES (current_timestamp, 'testUser', 'test@gin.org', decode('password','escape'), 1);
+```
