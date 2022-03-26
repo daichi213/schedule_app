@@ -9,7 +9,7 @@ import (
 )
 
 func GetDB() (*gorm.DB, error) {
-	postgresqlInfo := fmt.Sprintf("host=db port=${POSTGRES_PORT} dbname=${POSTGRES_DATABASE} user=${POSTGRES_USER} password=${POSTGRES_PASSWORD} sslmode=disable",
+	postgresqlInfo := fmt.Sprintf("host=db port=%s dbname=%s user=%s password=%s sslmode=disable",
 		os.Getenv("POSTGRES_PORT"), os.Getenv("POSTGRES_DATABASE"), os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_PASSWORD"))
 
 	db, err := gorm.Open(postgres.Open(postgresqlInfo), &gorm.Config{})
