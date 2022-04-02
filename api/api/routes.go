@@ -1,11 +1,13 @@
 package api
 
 import (
+	"fmt"
 	"log"
     "github.com/gin-gonic/gin"
 )
 
 func InitializeRoutes(router *gin.Engine) {
+	fmt.Println("checkpoint 1")
 	// Call the authMiddleware
 	authMiddleware, err := CallAuthMiddleware()
 	if err != nil {

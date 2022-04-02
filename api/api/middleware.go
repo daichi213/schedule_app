@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"time"
 	"log"
     "github.com/gin-gonic/gin"
@@ -9,10 +10,12 @@ import (
 	jwt "github.com/appleboy/gin-jwt/v2"
 )
 
+// TODO MODELの変数をmiddlewareでも参照してしまっているため、分離できるように努める（DIコンテナで実現できるか？）
 // jwt middleware
 var IdentityKey = "id"
 
 func CallAuthMiddleware() (*jwt.GinJWTMiddleware, error) {
+	fmt.Println("checkpoint 2")
 	AuthMiddleware, err := jwt.New(&jwt.GinJWTMiddleware{
 		Realm:		"test zone",
 		Key:  		[]byte("secret key"),
@@ -20,66 +23,74 @@ func CallAuthMiddleware() (*jwt.GinJWTMiddleware, error) {
 		MaxRefresh:	time.Hour,
 		IdentityKey: IdentityKey,
 		// login後に呼び出される関数
-		PayloadFunc: func(data interface{}) jwt.MapClaims {
-			if v, ok := data.(*Login); ok {
-				return jwt.MapClaims{
-					IdentityKey: v.UserName,
-				}
-			}
-			return jwt.MapClaims{}
-		},
+		PayloadFunc: internalPayloadFunc,
 		// Authorizatorへ値を渡すための関数
-		IdentityHandler: func(c *gin.Context) interface{} {
-			claims := jwt.ExtractClaims(c)
-			return &Login{
-				UserName: claims[IdentityKey].(string),
-			}
-		},
+		IdentityHandler: internalIdentityHandlerFunction,
 		// 認証(ユーザー本人かどうかの確認)
-		Authenticator: func(c *gin.Context) (interface{}, error) {
-			var loginVals Login
-			if err := c.ShouldBind(&loginVals); err != nil {
-				return "", jwt.ErrMissingLoginValues
-			}
-			sentEmail := loginVals.Email
-			sentPassword, err := bcrypt.GenerateFromPassword([]byte(loginVals.Password), bcrypt.DefaultCost)
-			if err != nil {
-				log.Fatalf("An error occurred while password is hashing")
-				return "", jwt.ErrMissingLoginValues
-			}
-
-			// TODOHTTPヘッダからIPアドレスを記録できるようにする
-			if err := GetUserByEmail(sentEmail); err != nil {
-				log.Fatalf("No existing password is sent")
-				return "", jwt.ErrMissingLoginValues
-			}
-
-			if invalid := bcrypt.CompareHashAndPassword(sentPassword, User.Password); invalid != nil {
-				return nil, jwt.ErrFailedAuthentication
-			} else {
-				return &Login{
-					UserName: 	User.UserName,
-					Email: 		User.Email,
-					Password:	loginVals.Password,
-				}, nil
-			}
-		},
+		Authenticator: internalAuthenticatorFunction,
 		// 認可(権限の確認)
-		Authorizator: func(data interface{}, c *gin.Context) bool {
-			if v, ok := data.(*Login); ok && v.AdminFlag == 1 {
-				return true
-			}
-			return false
-		},
-		Unauthorized: func(c *gin.Context, code int, message string) {
-			c.JSON(code, gin.H{
-				"code":		code,
-				"message":	message,
-			})
-		},
+		// token発行後のページの読み込み制御についての関数
+		Authorizator: internalAuthorizatorFunction,
+		Unauthorized: internalUnauthorizedFunction,
 		TokenLookup: "header: Authorization, query: token, cookie: jwt",
 		TokenHeadName: "Bearer",
 		TimeFunc: time.Now,
 	})
 	return AuthMiddleware, err
+}
+
+func internalPayloadFunc(data interface{}) jwt.MapClaims {
+	if v, ok := data.(*Login); ok {
+		return jwt.MapClaims{
+			IdentityKey: v.Email,
+		}
+	}
+	return jwt.MapClaims{}
+}
+
+func internalIdentityHandlerFunction(c *gin.Context) interface{} {
+	claims := jwt.ExtractClaims(c)
+	return &Login{
+		Email: claims[IdentityKey].(string),
+	}
+}
+
+func internalAuthenticatorFunction(c *gin.Context) (interface{}, error) {
+	var loginVals Login
+	if err := c.ShouldBind(&loginVals); err != nil {
+		fmt.Println("checkpoint shouldbind")
+		return "", jwt.ErrMissingLoginValues
+	}
+
+	// TODOHTTPヘッダからIPアドレスを記録できるようにする
+	if err := GetUserByEmail(loginVals.Email); err != nil {
+		// log.Fatalf("No existing password is sent")
+		fmt.Println("checkpoint get user")
+		return "", jwt.ErrMissingLoginValues
+	}
+
+	if invalid := bcrypt.CompareHashAndPassword(UserFromDB.Password, []byte(loginVals.Password)); invalid != nil {
+		log.Fatalf("Password is wrong...;dbside:%v,loginVals:%v", UserFromDB.Password, []byte(loginVals.Password))
+		return "", jwt.ErrFailedAuthentication
+	} else {
+		return &Login{
+			UserName: 	UserToDB.UserName,
+			Email: 		UserToDB.Email,
+			Password:	loginVals.Password,
+		}, nil
+	}
+}
+
+func internalAuthorizatorFunction(data interface{}, c *gin.Context) bool {
+	if _, ok := data.(*Login); ok {
+		return true
+	}
+	return false
+}
+
+func internalUnauthorizedFunction(c *gin.Context, code int, message string) {
+	c.JSON(code, gin.H{
+		"code":		code,
+		"message":	message,
+	})
 }

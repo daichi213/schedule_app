@@ -74,3 +74,34 @@ CREATE TABLE `todos` (
   KEY `idx_todos_deleted_at` (`deleted_at`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
 ```
+
+## docker-daemon error
+
+### 事象
+
+```sh
+ozakidaichi@ozakidaichinoMacBook-Pro schedule_app % docker-compose up
+Starting postgres             ... error
+Starting schedule_app_front_1 ... 
+
+ERROR: for postgres  Cannot start service db: error while creating mount source path '/host_mnt/Users/ozakidaichi/Desktop/ozaki/app/schedule_app/db/postgresql.conf': mkdir /host_mnt/Users/ozakidaichi/Desktop/oz
+Starting schedule_app_front_1 ... error
+
+ERROR: for schedule_app_front_1  Cannot start service front: error while creating mount source path '/host_mnt/Users/ozakidaichi/Desktop/ozaki/app/schedule_app/front': mkdir /host_mnt/Users/ozakidaichi/Desktop/ozaki/app: no such file or directory
+
+ERROR: for db  Cannot start service db: error while creating mount source path '/host_mnt/Users/ozakidaichi/Desktop/ozaki/app/schedule_app/db/postgresql.conf': mkdir /host_mnt/Users/ozakidaichi/Desktop/ozaki/app: no such file or directory
+
+ERROR: for front  Cannot start service front: error while creating mount source path '/host_mnt/Users/ozakidaichi/Desktop/ozaki/app/schedule_app/front': mkdir /host_mnt/Users/ozakidaichi/Desktop/ozaki/app: no such file or directory
+ERROR: Encountered errors while bringing up the project.
+```
+
+### 原因
+
+コンテナーを立ち上げ続けてしまっている最中にローカル側のファイル名を変更してしまったことが原因だと推察される。原因についての調査はなし。
+
+### 解決
+
+```
+$ docker-compose down --volumes
+# docker engineを再起動
+```
