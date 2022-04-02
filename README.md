@@ -207,8 +207,7 @@ SALT="ivYD6S8xRZ0SfacCmhmcfROlBKz7VyjWmIUV"/go/src/api #
 ### 田桐さん
 
 ```bash
-curl http://localhost:8080/login --data "{ \"UserName\": \"testUser\", \"Email\": \"testUser@gin.org\",  \"Password\": \"password\"}" -H 'Content-type: applica
-tion/json' -X POST -v
+curl http://localhost:8080/login --data "{ \"UserName\": \"testUser\", \"Email\": \"testUser@gin.org\",  \"Password\": \"password\"}" -H 'Content-type: application/json' -X POST -v
 ```
 
 ## 備考

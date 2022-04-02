@@ -108,3 +108,43 @@ $ dlv test .
 # continueコマンドのエイリアスでブレークポイントまで実効する
 (dlv) c
 ```
+
+## bcrypt
+
+### 概要
+
+gin自体にパスワードのハッシュ化のための機能は付随していないため、別のbcryptというライブラリを使用することでパスワードをハッシュ化してテーブルに保存することができる。
+
+### GenerateFromPasswordでのSALTの使用
+
+bcrypt内でパスワードをハッシュ化するための関数がGenerateFromPasswordになっている。この関数は内部でsaltを付与してハッシュ化してくれるため、自分自身でカスタムのsaltなどを付与する必要はない。
+
+### 使用方法
+
+```go
+func internalAuthenticatorFunction(c *gin.Context) (interface{}, error) {
+	var loginVals Login
+	if err := c.ShouldBind(&loginVals); err != nil {
+		fmt.Println("checkpoint shouldbind")
+		return "", jwt.ErrMissingLoginValues
+	}
+
+	if err := GetUserByEmail(loginVals.Email); err != nil {
+		// log.Fatalf("No existing password is sent")
+		fmt.Println("checkpoint get user")
+		return "", jwt.ErrMissingLoginValues
+	}
+
+    // CompareHashAndPasswordの第一引数にsaltつきのハッシュ値、第二引数に素のパスワードのバイト列を指定する
+	if invalid := bcrypt.CompareHashAndPassword(UserFromDB.Password, []byte(loginVals.Password)); invalid != nil {
+		log.Fatalf("Password is wrong...;dbside:%v,loginVals:%v", UserFromDB.Password, []byte(loginVals.Password))
+		return "", jwt.ErrFailedAuthentication
+	} else {
+		return &Login{
+			UserName: 	UserToDB.UserName,
+			Email: 		UserToDB.Email,
+			Password:	loginVals.Password,
+		}, nil
+	}
+}
+```
