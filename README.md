@@ -208,6 +208,8 @@ SALT="ivYD6S8xRZ0SfacCmhmcfROlBKz7VyjWmIUV"/go/src/api #
 
 ```bash
 curl http://localhost:8080/login --data "{ \"UserName\": \"testUser\", \"Email\": \"testUser@gin.org\",  \"Password\": \"password\"}" -H 'Content-type: application/json' -X POST -v
+
+http -f GET localhost:8080/auth/hello "Authorization:Bearer xxxxxxxxx"  "Content-Type: application/json"
 ```
 
 ## 備考
