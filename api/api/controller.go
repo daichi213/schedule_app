@@ -30,7 +30,25 @@ func SignUp(c *gin.Context) {
 	}
 }
 
-func ScheduleHandler(c *gin.Context) {
+func ScheduleCreateHandler(c *gin.Context) {
+	// claims := jwt.ExtractClaims(c)
+	// user, _ := c.Get(IdentityKey)
+	// TODO ログインユーザーにひもづくschedule, todoのレコードを取得する関数を呼び出す
+}
+
+func ScheduleGetHandler(c *gin.Context) {
+	// claims := jwt.ExtractClaims(c)
+	// user, _ := c.Get(IdentityKey)
+	// TODO ログインユーザーにひもづくschedule, todoのレコードを取得する関数を呼び出す
+}
+
+func ScheduleUpdateHandler(c *gin.Context) {
+	// claims := jwt.ExtractClaims(c)
+	// user, _ := c.Get(IdentityKey)
+	// TODO ログインユーザーにひもづくschedule, todoのレコードを取得する関数を呼び出す
+}
+
+func ScheduleDeleteHandler(c *gin.Context) {
 	// claims := jwt.ExtractClaims(c)
 	// user, _ := c.Get(IdentityKey)
 	// TODO ログインユーザーにひもづくschedule, todoのレコードを取得する関数を呼び出す

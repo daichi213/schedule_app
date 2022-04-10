@@ -35,3 +35,23 @@ $ godoc -http ":8080"
 ```sql
 INSERT INTO users (created_at, username, email, password, admin_flag) VALUES (current_timestamp, 'testUser', 'test@gin.org', decode('password','escape'), 1);
 ```
+
+## jwtを使用した認証
+
+認証時にtokenをクライアント側へ発行し、その発行したtokenを使用して認可を行う方式のこと。
+今回、SPAでバックエンド側をginで行うにあたり、"github.com/appleboy/gin-jwt/v2"のライブラリを使用した。
+
+### tokenの保管先
+
+tokenの保管には十分に注意する必要があり、[特にセキュリティを意識せずクライアントのlocalstrageに保存してしまうと、JSから簡単にtokenを盗めてしまうため、注意が必要になる。](https://tech.hicustomer.jp/posts/modern-authentication-in-hosting-spa/)
+
+今回の保管方法については以下を候補にした。
+
+- [Cookieを使用した認証](https://korattablog.com/2020/07/20/gin%E3%82%92%E4%BD%BF%E3%81%A3%E3%81%9Fgo-api%E9%96%8B%E7%99%BA%E3%81%AE%E5%88%9D%E6%AD%A9%EF%BC%88cookie%E7%B7%A8%EF%BC%89/)
+- sessionStrageを使用した認証
+    - この方法では、クライアント側にtokenがあるため別のサービスへの認証をシームレスに行う際に役に立つ
+    →田桐さんから教えてもらったメリット的にはこの方法でないと意味がないか・・・
+    →[セキュアにするなら、AWSのcognitoなどを組み合わせて使用するのが良い？](https://tech.hicustomer.jp/posts/modern-authentication-in-hosting-spa/)
+    - jsから簡単にアクセスできてしまうためセキュリティの担保が難しい
+
+今回はサービスとして運用する予定はないため、セキュリティは必要最低限にし、認証についての勉強を兼ねてSessionStrageを使用したtokenの保管方法を採用する

@@ -5,8 +5,7 @@ CREATE TABLE IF NOT EXISTS schedules (
     created_at timestamp without time zone,
     updated_at timestamp without time zone DEFAULT NULL,
     deleted_at timestamp without time zone DEFAULT NULL,
-    title text DEFAULT NULL,
-    user_id bigint NOT NULL
+    title text DEFAULT NULL
 );
 
 -- +migrate Down

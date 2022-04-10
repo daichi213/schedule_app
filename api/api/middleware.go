@@ -12,7 +12,7 @@ import (
 
 // TODO MODELの変数をmiddlewareでも参照してしまっているため、分離できるように努める（DIコンテナで実現できるか？）
 // jwt middleware
-var IdentityKey = "id"
+var IdentityKey = "email"
 
 func CallAuthMiddleware() (*jwt.GinJWTMiddleware, error) {
 	fmt.Println("checkpoint 2")
@@ -42,6 +42,7 @@ func CallAuthMiddleware() (*jwt.GinJWTMiddleware, error) {
 func internalPayloadFunc(data interface{}) jwt.MapClaims {
 	if v, ok := data.(*Login); ok {
 		return jwt.MapClaims{
+			"user_id": v.ID,
 			IdentityKey: v.Email,
 		}
 	}

@@ -29,7 +29,21 @@ func InitializeRoutes(router *gin.Engine) {
 	auth.Use(authMiddleware.MiddlewareFunc())
 	{
 		auth.GET("/hello", HelloHandler)
-		auth.GET("/schedule", ScheduleHandler)
+		// USER関連
+		auth.PUT("/:user_id", UserEditHandler)
+		auth.DELETE("/:user_id", UserEditHandler)
+		// schedule関連
+		auth.POST("/schedule", ScheduleCreateHandler)
+		// auth.GET("/schedules", AllScheduleGetHandler)
+		// auth.GET("/schedule/:schedule_id", ScheduleGetHandler)
+		// auth.PUT("/schedule/:schedule_id", ScheduleUpdateHandler)
+		// auth.DELETE("/schedule/:schedule_id", ScheduleDeleteHandler)
+		// schedule関連に紐づくtodo関連
+		// auth.POST("/todo", TodoCreateHandler)
+		// auth.GET("/todos", AllTodoGetHandler)
+		// auth.GET("/todos", TodoGetHandler)
+		// auth.PUT("/todo", TodoUpdateHandler)
+		// auth.DELETE("/todo", TodoDeleteHandler)
 	}
 
 	// AuthMiddleWareの初期化

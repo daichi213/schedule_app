@@ -1,11 +1,13 @@
 package api
 
 import (
+	"time"
 	"log"
 	"golang.org/x/crypto/bcrypt"
 	_ "github.com/lib/pq"
 )
 
+// Clientから受け取る構造体
 type Login struct {
 	UserName string `form:"UserName" json:"UserName" binding:"required"`
 	Email string `form:"Email" json:"Email" binding:"required"`
@@ -13,11 +15,17 @@ type Login struct {
 	AdminFlag int `form:"AdminFlag" json:"AdminFlag"`
 }
 
+// Tableへ格納するために使用する構造体
 type User struct {
+	ID uint `gorm:"primary_key"`
 	UserName string `form:"UserName" json:"UserName" binding:"required"`
 	Email string `form:"Email" json:"Email" binding:"required"`
 	Password []byte `form:"Password" json:"Password" binding:"required"`
-	AdminFlag int `form:"AdminFlag" json:"AdminFlag" binding:"required"`}
+	AdminFlag int `form:"AdminFlag" json:"AdminFlag" binding:"required"`
+	CreatedAt time.Time
+  	UpdatedAt time.Time
+  	DeletedAt *time.Time
+}
 
 var UserFromDB User
 var UserToDB User
@@ -46,7 +54,7 @@ func CreateUser(user *Login) error {
 		} else {
 			UserToDB = User{UserName: user.UserName, Email: user.Email, Password: pass}
 		}
-		if err := tx.Model(UserToDB).Create(UserToDB).Error; err != nil {
+		if err := tx.Model(&UserToDB).Create(&UserToDB).Error; err != nil {
 			tx.Rollback()
 			log.Fatalf("Could not create: %v", err)
 		} else {
